@@ -1,0 +1,21 @@
+services:
+  web:
+    build: .
+    container_name: firstproject-web
+    user: "0:0"
+    ports:
+      - "8009:8000"
+    volumes:
+      - .:/app:delegated
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    healthcheck:
+      # Uses bash built-in TCP redirection instead of nc/curl
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8000' >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  static_volume:
+  media_volume:
