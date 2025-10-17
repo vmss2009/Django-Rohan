@@ -136,23 +136,6 @@
             font-size: 1rem;
         }
 
-        textarea.bulk-input {
-            width: 100%;
-            min-height: 72px;
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid #cbd5f5;
-            font-size: 0.95rem;
-            resize: vertical;
-            margin-top: 12px;
-        }
-
-        textarea.bulk-input:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
-        }
-
         .row-actions {
             display: flex;
             justify-content: space-between;
@@ -281,12 +264,19 @@
             </fieldset>
 
             <div id="ungroupedPanel">
-                <h3>Ungrouped data</h3>
+                <div class="toggle-row" style="display: flex; align-items: center; gap: 10px;">
+                    <h3 style="margin: 0;">Ungrouped data</h3>
+                    <label class="option">
+                        <input type="checkbox" id="useUngroupedCumulative">
+                        <span>Enter cumulative frequencies</span>
+                    </label>
+                </div>
                 <table>
                     <thead>
                     <tr>
-                        <th style="width: 45%">Value</th>
-                        <th style="width: 45%">Frequency</th>
+                        <th style="width: 40%">Value</th>
+                        <th style="width: 25%" id="ungroupedFreqHeader">Frequency</th>
+                        <th style="width: 25%" id="ungroupedCumHeader">Cumulative freq.</th>
                         <th style="width: 10%"></th>
                     </tr>
                     </thead>
@@ -295,12 +285,6 @@
                 <div class="row-actions">
                     <button class="secondary" type="button" id="addUngroupedRow">Add row</button>
                     <button class="danger" type="button" id="clearUngrouped">Clear all</button>
-                </div>
-                <textarea id="ungroupedBulkInput" class="bulk-input" placeholder="50, 60, 60, 61"></textarea>
-                <div class="helper">Enter raw values separated by commas, spaces, or new lines. We will auto-count duplicates.</div>
-                <div class="row-actions" style="margin-top: 12px;">
-                    <button class="secondary" type="button" id="applyUngroupedBulk">Apply values</button>
-                    <div></div>
                 </div>
             </div>
 
@@ -372,8 +356,9 @@
     const groupedBody = document.getElementById('groupedBody');
     const addUngroupedRowBtn = document.getElementById('addUngroupedRow');
     const clearUngroupedBtn = document.getElementById('clearUngrouped');
-    const applyUngroupedBulkBtn = document.getElementById('applyUngroupedBulk');
-    const ungroupedBulkInput = document.getElementById('ungroupedBulkInput');
+    const useUngroupedCumulativeCheckbox = document.getElementById('useUngroupedCumulative');
+    const ungroupedFreqHeader = document.getElementById('ungroupedFreqHeader');
+    const ungroupedCumHeader = document.getElementById('ungroupedCumHeader');
     const addGroupedRowBtn = document.getElementById('addGroupedRow');
     const clearGroupedBtn = document.getElementById('clearGrouped');
     const freqHeader = document.getElementById('freqHeader');
@@ -403,6 +388,7 @@
         if (type === 'ungrouped') {
             ungroupedPanel.classList.remove('hidden');
             groupedPanel.classList.add('hidden');
+            updateUngroupedInputMode();
         } else {
             groupedPanel.classList.remove('hidden');
             ungroupedPanel.classList.add('hidden');
@@ -420,15 +406,17 @@
         return button;
     }
 
-    function addUngroupedRow(value = '', frequency = '') {
+    function addUngroupedRow(value = '', frequency = '', cumulative = '') {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td><input type="text" class="value-input" inputmode="decimal" value="${value}"></td>
-            <td><input type="text" class="frequency-input" inputmode="decimal" value="${frequency}" placeholder="1"></td>
+            <td><input type="text" class="value-input" inputmode="decimal" value="${value}" placeholder="10"></td>
+            <td><input type="text" class="frequency-input" inputmode="decimal" value="${frequency}"></td>
+            <td><input type="text" class="cumulative-input" inputmode="decimal" value="${cumulative}"></td>
             <td></td>
         `;
         row.lastElementChild.appendChild(createRemoveButton(row));
         ungroupedBody.appendChild(row);
+        updateUngroupedInputMode();
     }
 
     function addGroupedRow(interval = '', frequency = '', cumulative = '') {
@@ -448,6 +436,7 @@
         ungroupedBody.innerHTML = '';
         addUngroupedRow();
         addUngroupedRow();
+        updateUngroupedInputMode();
     }
 
     function resetGroupedRows() {
@@ -493,7 +482,8 @@
                 return;
             }
             const freqText = row.querySelector('.frequency-input').value.trim();
-            rows.push({ value: valueText, frequency: freqText });
+            const cumulativeText = row.querySelector('.cumulative-input').value.trim();
+            rows.push({ value: valueText, frequency: freqText, cumulative: cumulativeText });
         });
         return rows;
     }
@@ -572,7 +562,11 @@
             const payload = {
                 dataType: selectedType,
                 rows: selectedType === 'ungrouped' ? collectUngroupedRows() : collectGroupedRows(),
-                usingCumulative: selectedType === 'grouped' ? useCumulativeCheckbox.checked : false
+                usingCumulative: selectedType === 'ungrouped'
+                    ? useUngroupedCumulativeCheckbox.checked
+                    : selectedType === 'grouped'
+                        ? useCumulativeCheckbox.checked
+                        : false
             };
 
             const response = await fetch(window.location.pathname, {
@@ -595,46 +589,41 @@
         }
     }
 
-    function applyUngroupedBulkValues() {
-        try {
-            showError('');
-            const tokens = ungroupedBulkInput.value.split(/[\s,]+/).filter(Boolean);
-            if (!tokens.length) {
-                throw new Error('Enter at least one numeric value to populate the table.');
-            }
-            const counts = new Map();
-            tokens.forEach((token) => {
-                const value = parseFloat(token);
-                if (!Number.isFinite(value)) {
-                    throw new Error(`"${token}" is not a valid number.`);
-                }
-                counts.set(value, (counts.get(value) || 0) + 1);
-            });
-            const sorted = Array.from(counts.entries()).sort((a, b) => a[0] - b[0]);
-            ungroupedBody.innerHTML = '';
-            sorted.forEach(([value, frequency]) => {
-                addUngroupedRow(value, frequency);
-            });
-        } catch (error) {
-            showError(error.message);
-        }
-    }
-
     document.querySelectorAll('input[name="dataType"]').forEach((input) => {
         input.addEventListener('change', (event) => {
             togglePanels(event.target.value);
         });
     });
 
+    function updateUngroupedInputMode() {
+        const usingCumulative = useUngroupedCumulativeCheckbox.checked;
+        ungroupedFreqHeader.style.opacity = usingCumulative ? '0.4' : '1';
+        ungroupedCumHeader.style.opacity = usingCumulative ? '1' : '0.4';
+        ungroupedBody.querySelectorAll('tr').forEach((row) => {
+            const freqInput = row.querySelector('.frequency-input');
+            const cumInput = row.querySelector('.cumulative-input');
+            freqInput.disabled = usingCumulative;
+            cumInput.disabled = !usingCumulative;
+            if (usingCumulative) {
+                freqInput.value = '';
+            } else {
+                cumInput.value = '';
+            }
+        });
+    }
+
     useCumulativeCheckbox.addEventListener('change', () => {
         updateGroupedInputMode();
+    });
+
+    useUngroupedCumulativeCheckbox.addEventListener('change', () => {
+        updateUngroupedInputMode();
     });
 
     addUngroupedRowBtn.addEventListener('click', () => addUngroupedRow());
     clearUngroupedBtn.addEventListener('click', () => {
         resetUngroupedRows();
     });
-    applyUngroupedBulkBtn.addEventListener('click', applyUngroupedBulkValues);
 
     addGroupedRowBtn.addEventListener('click', () => addGroupedRow());
     clearGroupedBtn.addEventListener('click', () => {
@@ -648,6 +637,7 @@
 
     resetUngroupedRows();
     resetGroupedRows();
+    updateUngroupedInputMode();
     updateGroupedInputMode();
 </script>
 </body>
