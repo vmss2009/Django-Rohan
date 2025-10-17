@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics Playground</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            font-family: 'Inter', sans-serif;
+            color: #0f172a;
+            background-color: #f8fafc;
+        }
+
+        body {
+            margin: 0;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 20px 56px;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            margin-bottom: 8px;
+        }
+
+        p.lead {
+            margin-top: 0;
+            margin-bottom: 24px;
+            color: #475569;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .panel {
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+            padding: 24px;
+        }
+
+        fieldset {
+            border: none;
+            padding: 0;
+            margin: 0 0 20px;
+        }
+
+        fieldset legend {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        label.option {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 16px;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        thead th {
+            text-align: left;
+            font-size: 0.9rem;
+            color: #1e293b;
+            padding-bottom: 8px;
+        }
+
+        tbody td {
+            padding: 6px 6px 12px 0;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #cbd5f5;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+        }
+
+        button {
+            border: none;
+            border-radius: 999px;
+            padding: 10px 18px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+
+        button.primary {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: #ffffff;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+        }
+
+        button.secondary {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        button.danger {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+        }
+
+        button.remove {
+            border-radius: 8px;
+            padding: 6px 10px;
+            background: #fee2e2;
+            color: #b91c1c;
+            font-size: 1rem;
+        }
+
+        textarea.bulk-input {
+            width: 100%;
+            min-height: 72px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #cbd5f5;
+            font-size: 0.95rem;
+            resize: vertical;
+            margin-top: 12px;
+        }
+
+        textarea.bulk-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+        }
+
+        .row-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .helper {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 6px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error-box {
+            background: #fee2e2;
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #991b1b;
+            font-weight: 500;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .results-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .results-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(124, 58, 237, 0.12));
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+
+        .stat-card span.label {
+            display: block;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #475569;
+            margin-bottom: 4px;
+        }
+
+        .stat-card strong {
+            font-size: 1.4rem;
+        }
+
+        .chart-box {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 12px;
+            box-sizing: border-box;
+            min-height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .chart-image {
+            max-width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
+            display: none;
+        }
+
+        .chart-image.visible {
+            display: block;
+        }
+
+        .placeholder {
+            color: #94a3b8;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Statistics Playground</h1>
+    <p class="lead">Capture ungrouped values or grouped class intervals, then let the server generate Matplotlib visuals.</p>
+
+    <div class="grid">
+        <section class="panel" id="configuration">
+            <div class="error-box" id="errorBox"></div>
+
+            <fieldset>
+                <legend>Data structure</legend>
+                <label class="option">
+                    <input type="radio" name="dataType" value="ungrouped" checked>
+                    <span>Ungrouped data (value + frequency)</span>
+                </label>
+                <label class="option">
+                    <input type="radio" name="dataType" value="grouped">
+                    <span>Grouped data (class intervals)</span>
+                </label>
+            </fieldset>
+
+            <div id="ungroupedPanel">
+                <h3>Ungrouped data</h3>
+                <table>
+                    <thead>
+                    <tr>
+                        <th style="width: 45%">Value</th>
+                        <th style="width: 45%">Frequency</th>
+                        <th style="width: 10%"></th>
+                    </tr>
+                    </thead>
+                    <tbody id="ungroupedBody"></tbody>
+                </table>
+                <div class="row-actions">
+                    <button class="secondary" type="button" id="addUngroupedRow">Add row</button>
+                    <button class="danger" type="button" id="clearUngrouped">Clear all</button>
+                </div>
+                <textarea id="ungroupedBulkInput" class="bulk-input" placeholder="50, 60, 60, 61"></textarea>
+                <div class="helper">Enter raw values separated by commas, spaces, or new lines. We will auto-count duplicates.</div>
+                <div class="row-actions" style="margin-top: 12px;">
+                    <button class="secondary" type="button" id="applyUngroupedBulk">Apply values</button>
+                    <div></div>
+                </div>
+            </div>
+
+            <div id="groupedPanel" class="hidden">
+                <div class="toggle-row" style="display: flex; align-items: center; gap: 10px;">
+                    <h3 style="margin: 0;">Grouped data</h3>
+                    <label class="option">
+                        <input type="checkbox" id="useCumulative">
+                        <span>Enter cumulative frequencies</span>
+                    </label>
+                </div>
+                <table>
+                    <thead>
+                    <tr>
+                        <th style="width: 40%">Class interval</th>
+                        <th style="width: 25%" id="freqHeader">Frequency</th>
+                        <th style="width: 25%" id="cumHeader">Cumulative freq.</th>
+                        <th style="width: 10%"></th>
+                    </tr>
+                    </thead>
+                    <tbody id="groupedBody"></tbody>
+                </table>
+                <div class="row-actions">
+                    <button class="secondary" type="button" id="addGroupedRow">Add class</button>
+                    <button class="danger" type="button" id="clearGrouped">Clear all</button>
+                </div>
+                <textarea id="groupedBulkInput" class="bulk-input" placeholder="50-60, 60-70, 70-80"></textarea>
+                <div class="helper">Intervals can be integers or decimals, e.g. 59-60 or 59.5-60.5, separated by commas, spaces, or new lines.</div>
+                <div class="row-actions" style="margin-top: 12px;">
+                    <button class="secondary" type="button" id="applyGroupedBulk">Apply intervals</button>
+                    <div></div>
+                </div>
+            </div>
+
+            <div class="row-actions" style="margin-top: 28px;">
+                <button class="primary" type="button" id="calculateBtn">Calculate with Matplotlib</button>
+            </div>
+        </section>
+
+        <section class="panel" id="resultsPanel">
+            <div class="results-header">
+                <h2>Insights</h2>
+                <span id="dataSummary"></span>
+            </div>
+            <div class="stats-grid" id="statsGrid"></div>
+            <div>
+                <h3 style="margin-top: 0;">Histogram</h3>
+                <div class="chart-box">
+                    <img id="histogramImage" class="chart-image" alt="Histogram generated with Matplotlib">
+                    <div id="histogramPlaceholder" class="placeholder">Charts will appear here once you calculate.</div>
+                </div>
+            </div>
+            <div style="margin-top: 32px;">
+                <h3 style="margin-top: 0;">Ogive (cumulative frequency)</h3>
+                <div class="chart-box">
+                    <img id="ogiveImage" class="chart-image" alt="Ogive generated with Matplotlib">
+                    <div id="ogivePlaceholder" class="placeholder">Median and mean lines are shown in the ogive plot.</div>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script>
+    const errorBox = document.getElementById('errorBox');
+    const dataSummary = document.getElementById('dataSummary');
+    const statsGrid = document.getElementById('statsGrid');
+    const histogramImage = document.getElementById('histogramImage');
+    const histogramPlaceholder = document.getElementById('histogramPlaceholder');
+    const ogiveImage = document.getElementById('ogiveImage');
+    const ogivePlaceholder = document.getElementById('ogivePlaceholder');
+    const ungroupedPanel = document.getElementById('ungroupedPanel');
+    const groupedPanel = document.getElementById('groupedPanel');
+    const ungroupedBody = document.getElementById('ungroupedBody');
+    const groupedBody = document.getElementById('groupedBody');
+    const addUngroupedRowBtn = document.getElementById('addUngroupedRow');
+    const clearUngroupedBtn = document.getElementById('clearUngrouped');
+    const applyUngroupedBulkBtn = document.getElementById('applyUngroupedBulk');
+    const ungroupedBulkInput = document.getElementById('ungroupedBulkInput');
+    const addGroupedRowBtn = document.getElementById('addGroupedRow');
+    const clearGroupedBtn = document.getElementById('clearGrouped');
+    const applyGroupedBulkBtn = document.getElementById('applyGroupedBulk');
+    const groupedBulkInput = document.getElementById('groupedBulkInput');
+    const freqHeader = document.getElementById('freqHeader');
+    const cumHeader = document.getElementById('cumHeader');
+    const useCumulativeCheckbox = document.getElementById('useCumulative');
+    const calculateBtn = document.getElementById('calculateBtn');
+
+    function getCookie(name) {
+        const cookies = document.cookie ? document.cookie.split('; ') : [];
+        for (const cookie of cookies) {
+            const [key, value] = cookie.split('=');
+            if (key === name) {
+                return decodeURIComponent(value);
+            }
+        }
+        return null;
+    }
+
+    const csrfToken = getCookie('csrftoken');
+
+    function showError(message) {
+        errorBox.textContent = message;
+        errorBox.style.display = message ? 'block' : 'none';
+    }
+
+    function togglePanels(type) {
+        if (type === 'ungrouped') {
+            ungroupedPanel.classList.remove('hidden');
+            groupedPanel.classList.add('hidden');
+        } else {
+            groupedPanel.classList.remove('hidden');
+            ungroupedPanel.classList.add('hidden');
+        }
+    }
+
+    function createRemoveButton(row) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'remove';
+        button.innerHTML = '&times;';
+        button.addEventListener('click', () => {
+            row.remove();
+        });
+        return button;
+    }
+
+    function addUngroupedRow(value = '', frequency = '') {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="text" class="value-input" inputmode="decimal" value="${value}"></td>
+            <td><input type="text" class="frequency-input" inputmode="decimal" value="${frequency}" placeholder="1"></td>
+            <td></td>
+        `;
+        row.lastElementChild.appendChild(createRemoveButton(row));
+        ungroupedBody.appendChild(row);
+    }
+
+    function addGroupedRow(interval = '', frequency = '', cumulative = '') {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="text" class="interval-input" value="${interval}" placeholder="50-60"></td>
+            <td><input type="text" class="frequency-input" inputmode="decimal" value="${frequency}"></td>
+            <td><input type="text" class="cumulative-input" inputmode="decimal" value="${cumulative}"></td>
+            <td></td>
+        `;
+        row.lastElementChild.appendChild(createRemoveButton(row));
+        groupedBody.appendChild(row);
+        updateGroupedInputMode();
+    }
+
+    function resetUngroupedRows() {
+        ungroupedBody.innerHTML = '';
+        addUngroupedRow();
+        addUngroupedRow();
+    }
+
+    function resetGroupedRows() {
+        groupedBody.innerHTML = '';
+        addGroupedRow();
+        addGroupedRow();
+    }
+
+    function updateGroupedInputMode() {
+        const usingCumulative = useCumulativeCheckbox.checked;
+        freqHeader.style.opacity = usingCumulative ? '0.4' : '1';
+        cumHeader.style.opacity = usingCumulative ? '1' : '0.4';
+        groupedBody.querySelectorAll('tr').forEach((row) => {
+            const freqInput = row.querySelector('.frequency-input');
+            const cumInput = row.querySelector('.cumulative-input');
+            freqInput.disabled = usingCumulative;
+            cumInput.disabled = !usingCumulative;
+            if (usingCumulative) {
+                freqInput.value = '';
+            } else {
+                cumInput.value = '';
+            }
+        });
+    }
+
+    function parseInterval(text) {
+        const cleaned = text.trim().replace(/\s+(?:to)\s+/i, '-');
+        if (!cleaned) {
+            return null;
+        }
+        const match = cleaned.match(/^(-?\d+(?:\.\d+)?)\s*[-–—]\s*(-?\d+(?:\.\d+)?)/);
+        if (!match) {
+            throw new Error(`"${text}" is not a valid interval. Use forms like 50-60.`);
+        }
+        return { lower: parseFloat(match[1]), upper: parseFloat(match[2]) };
+    }
+
+    function collectUngroupedRows() {
+        const rows = [];
+        ungroupedBody.querySelectorAll('tr').forEach((row) => {
+            const valueText = row.querySelector('.value-input').value.trim();
+            if (!valueText) {
+                return;
+            }
+            const freqText = row.querySelector('.frequency-input').value.trim();
+            rows.push({ value: valueText, frequency: freqText });
+        });
+        return rows;
+    }
+
+    function collectGroupedRows() {
+        const rows = [];
+        groupedBody.querySelectorAll('tr').forEach((row) => {
+            const intervalText = row.querySelector('.interval-input').value.trim();
+            if (!intervalText) {
+                return;
+            }
+            const frequencyText = row.querySelector('.frequency-input').value.trim();
+            const cumulativeText = row.querySelector('.cumulative-input').value.trim();
+            rows.push({ interval: intervalText, frequency: frequencyText, cumulative: cumulativeText });
+        });
+        return rows;
+    }
+
+    function clearResults() {
+        dataSummary.textContent = '';
+        statsGrid.innerHTML = '';
+        histogramImage.classList.remove('visible');
+        histogramImage.src = '';
+        histogramPlaceholder.style.display = 'block';
+        ogiveImage.classList.remove('visible');
+        ogiveImage.src = '';
+        ogivePlaceholder.style.display = 'block';
+    }
+
+    function renderStats(data) {
+        statsGrid.innerHTML = '';
+        const statItems = [
+            { label: 'Mean', value: data.mean },
+            { label: 'Median', value: data.median },
+            { label: 'Mode', value: data.mode },
+            { label: 'Modal class', value: data.modal_label }
+        ];
+        statItems.forEach((item) => {
+            const card = document.createElement('div');
+            card.className = 'stat-card';
+            card.innerHTML = `<span class="label">${item.label}</span><strong>${formatNumber(item.value)}</strong>`;
+            statsGrid.appendChild(card);
+        });
+        dataSummary.textContent = `${data.type} | Total frequency ${formatNumber(data.total_frequency)}`;
+    }
+
+    function renderImages(data) {
+        if (data.histogram_image) {
+            histogramImage.src = `data:image/png;base64,${data.histogram_image}`;
+            histogramImage.classList.add('visible');
+            histogramPlaceholder.style.display = 'none';
+        }
+        if (data.ogive_image) {
+            ogiveImage.src = `data:image/png;base64,${data.ogive_image}`;
+            ogiveImage.classList.add('visible');
+            ogivePlaceholder.style.display = 'none';
+        }
+    }
+
+    function formatNumber(value) {
+        if (value === null || value === undefined || value === '') {
+            return '—';
+        }
+        if (typeof value === 'string') {
+            return value;
+        }
+        const rounded = Math.round(value * 1000) / 1000;
+        return Number.isInteger(rounded) ? `${rounded}` : `${rounded}`;
+    }
+
+    async function calculateStatistics() {
+        try {
+            showError('');
+            clearResults();
+            const selectedType = document.querySelector('input[name="dataType"]:checked').value;
+            const payload = {
+                dataType: selectedType,
+                rows: selectedType === 'ungrouped' ? collectUngroupedRows() : collectGroupedRows(),
+                usingCumulative: selectedType === 'grouped' ? useCumulativeCheckbox.checked : false
+            };
+
+            const response = await fetch(window.location.pathname, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken || ''
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Unable to calculate statistics.');
+            }
+            renderStats(data);
+            renderImages(data);
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    function applyUngroupedBulkValues() {
+        try {
+            showError('');
+            const tokens = ungroupedBulkInput.value.split(/[\s,]+/).filter(Boolean);
+            if (!tokens.length) {
+                throw new Error('Enter at least one numeric value to populate the table.');
+            }
+            const counts = new Map();
+            tokens.forEach((token) => {
+                const value = parseFloat(token);
+                if (!Number.isFinite(value)) {
+                    throw new Error(`"${token}" is not a valid number.`);
+                }
+                counts.set(value, (counts.get(value) || 0) + 1);
+            });
+            const sorted = Array.from(counts.entries()).sort((a, b) => a[0] - b[0]);
+            ungroupedBody.innerHTML = '';
+            sorted.forEach(([value, frequency]) => {
+                addUngroupedRow(value, frequency);
+            });
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    function applyGroupedBulkValues() {
+        try {
+            showError('');
+            const tokens = groupedBulkInput.value.split(/[\s,]+/).filter(Boolean);
+            if (!tokens.length) {
+                throw new Error('Enter at least one class interval to populate the table.');
+            }
+            const unique = [];
+            const lookup = new Map();
+            tokens.forEach((token) => {
+                const interval = token.trim();
+                if (!interval) {
+                    return;
+                }
+                const parsed = parseInterval(interval);
+                if (!parsed) {
+                    return;
+                }
+                const key = `${parsed.lower}-${parsed.upper}`;
+                if (!lookup.has(key)) {
+                    unique.push({ key, interval: `${parsed.lower}-${parsed.upper}`, count: 1 });
+                    lookup.set(key, unique.length - 1);
+                } else {
+                    const idx = lookup.get(key);
+                    unique[idx].count += 1;
+                }
+            });
+            if (!unique.length) {
+                throw new Error('Enter at least one valid class interval.');
+            }
+            unique.sort((a, b) => parseFloat(a.interval.split('-')[0]) - parseFloat(b.interval.split('-')[0]));
+            const usingCumulative = useCumulativeCheckbox.checked;
+            let runningTotal = 0;
+            groupedBody.innerHTML = '';
+            unique.forEach((item) => {
+                runningTotal += item.count;
+                const frequencyValue = usingCumulative ? '' : item.count;
+                const cumulativeValue = usingCumulative ? runningTotal : '';
+                addGroupedRow(item.interval, frequencyValue, cumulativeValue);
+            });
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    document.querySelectorAll('input[name="dataType"]').forEach((input) => {
+        input.addEventListener('change', (event) => {
+            togglePanels(event.target.value);
+        });
+    });
+
+    useCumulativeCheckbox.addEventListener('change', () => {
+        updateGroupedInputMode();
+    });
+
+    addUngroupedRowBtn.addEventListener('click', () => addUngroupedRow());
+    clearUngroupedBtn.addEventListener('click', () => {
+        resetUngroupedRows();
+    });
+    applyUngroupedBulkBtn.addEventListener('click', applyUngroupedBulkValues);
+
+    addGroupedRowBtn.addEventListener('click', () => addGroupedRow());
+    clearGroupedBtn.addEventListener('click', () => {
+        resetGroupedRows();
+        updateGroupedInputMode();
+    });
+    applyGroupedBulkBtn.addEventListener('click', applyGroupedBulkValues);
+
+    calculateBtn.addEventListener('click', () => {
+        calculateStatistics();
+    });
+
+    resetUngroupedRows();
+    resetGroupedRows();
+    updateGroupedInputMode();
+</script>
+</body>
+</html>
