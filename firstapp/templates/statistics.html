@@ -327,12 +327,6 @@
                     <button class="secondary" type="button" id="addGroupedRow">Add class</button>
                     <button class="danger" type="button" id="clearGrouped">Clear all</button>
                 </div>
-                <textarea id="groupedBulkInput" class="bulk-input" placeholder="50-60, 60-70, 70-80"></textarea>
-                <div class="helper">Intervals can be integers or decimals, e.g. 59-60 or 59.5-60.5, separated by commas, spaces, or new lines.</div>
-                <div class="row-actions" style="margin-top: 12px;">
-                    <button class="secondary" type="button" id="applyGroupedBulk">Apply intervals</button>
-                    <div></div>
-                </div>
             </div>
 
             <div class="row-actions" style="margin-top: 28px;">
@@ -382,8 +376,6 @@
     const ungroupedBulkInput = document.getElementById('ungroupedBulkInput');
     const addGroupedRowBtn = document.getElementById('addGroupedRow');
     const clearGroupedBtn = document.getElementById('clearGrouped');
-    const applyGroupedBulkBtn = document.getElementById('applyGroupedBulk');
-    const groupedBulkInput = document.getElementById('groupedBulkInput');
     const freqHeader = document.getElementById('freqHeader');
     const cumHeader = document.getElementById('cumHeader');
     const useCumulativeCheckbox = document.getElementById('useCumulative');
@@ -628,51 +620,6 @@
         }
     }
 
-    function applyGroupedBulkValues() {
-        try {
-            showError('');
-            const tokens = groupedBulkInput.value.split(/[\s,]+/).filter(Boolean);
-            if (!tokens.length) {
-                throw new Error('Enter at least one class interval to populate the table.');
-            }
-            const unique = [];
-            const lookup = new Map();
-            tokens.forEach((token) => {
-                const interval = token.trim();
-                if (!interval) {
-                    return;
-                }
-                const parsed = parseInterval(interval);
-                if (!parsed) {
-                    return;
-                }
-                const key = `${parsed.lower}-${parsed.upper}`;
-                if (!lookup.has(key)) {
-                    unique.push({ key, interval: `${parsed.lower}-${parsed.upper}`, count: 1 });
-                    lookup.set(key, unique.length - 1);
-                } else {
-                    const idx = lookup.get(key);
-                    unique[idx].count += 1;
-                }
-            });
-            if (!unique.length) {
-                throw new Error('Enter at least one valid class interval.');
-            }
-            unique.sort((a, b) => parseFloat(a.interval.split('-')[0]) - parseFloat(b.interval.split('-')[0]));
-            const usingCumulative = useCumulativeCheckbox.checked;
-            let runningTotal = 0;
-            groupedBody.innerHTML = '';
-            unique.forEach((item) => {
-                runningTotal += item.count;
-                const frequencyValue = usingCumulative ? '' : item.count;
-                const cumulativeValue = usingCumulative ? runningTotal : '';
-                addGroupedRow(item.interval, frequencyValue, cumulativeValue);
-            });
-        } catch (error) {
-            showError(error.message);
-        }
-    }
-
     document.querySelectorAll('input[name="dataType"]').forEach((input) => {
         input.addEventListener('change', (event) => {
             togglePanels(event.target.value);
@@ -694,7 +641,6 @@
         resetGroupedRows();
         updateGroupedInputMode();
     });
-    applyGroupedBulkBtn.addEventListener('click', applyGroupedBulkValues);
 
     calculateBtn.addEventListener('click', () => {
         calculateStatistics();
