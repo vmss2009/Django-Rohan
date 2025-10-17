@@ -30,21 +30,4 @@ class Migration(migrations.Migration):
                 ('comments', models.CharField(max_length=1000)),
             ],
         ),
-        migrations.CreateModel(
-            name='TAform',
-            fields=[
-                ('TA_ID', models.AutoField(primary_key=True, serialize=False)),
-                ('introduction', models.TextField()),
-                ('goals', models.TextField()),
-                ('materials', models.TextField()),
-                ('instructions', models.TextField()),
-                ('observation', models.TextField()),
-                ('tips', models.TextField()),
-                ('extensions', models.TextField()),
-                ('resources', models.TextField()),
-                ('comments', models.TextField()),
-                ('status_tracking', models.CharField(max_length=100)),
-                ('current_status', models.CharField(max_length=100)),
-            ],
-        ),
     ]
