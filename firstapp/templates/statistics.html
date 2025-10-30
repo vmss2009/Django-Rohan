@@ -149,6 +149,12 @@
             margin-top: 6px;
         }
 
+        .helper.emphasis {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
         .hidden {
             display: none;
         }
@@ -202,35 +208,6 @@
             font-size: 1.4rem;
         }
 
-        .chart-box {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 12px;
-            box-sizing: border-box;
-            min-height: 320px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .chart-image {
-            max-width: 100%;
-            border-radius: 12px;
-            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
-            display: none;
-        }
-
-        .chart-image.visible {
-            display: block;
-        }
-
-        .placeholder {
-            color: #94a3b8;
-            text-align: center;
-            font-size: 0.95rem;
-        }
-
         @media (max-width: 768px) {
             h1 {
                 font-size: 1.75rem;
@@ -258,7 +235,7 @@
                 </label>
                 <label class="option">
                     <input type="radio" name="dataType" value="grouped">
-                    <span>Grouped data (class intervals)</span>
+                    <span>Grouped data (exclusive form only)</span>
                 </label>
             </fieldset>
 
@@ -312,6 +289,7 @@
                 </div>
             </div>
 
+            <p class="helper emphasis">The facts or figures which are numerical or otherwise collected with a definite purpose are called data.</p>
             <div class="row-actions" style="margin-top: 28px;">
                 <button class="primary" type="button" id="calculateBtn">Calculate</button>
             </div>
@@ -323,20 +301,6 @@
                 <span id="dataSummary"></span>
             </div>
             <div class="stats-grid" id="statsGrid"></div>
-            <div>
-                <h3 style="margin-top: 0;">Histogram</h3>
-                <div class="chart-box">
-                    <img id="histogramImage" class="chart-image" alt="Histogram generated with Matplotlib">
-                    <div id="histogramPlaceholder" class="placeholder">Charts will appear here once you calculate.</div>
-                </div>
-            </div>
-            <div style="margin-top: 32px;">
-                <h3 style="margin-top: 0;">Ogive (cumulative frequency)</h3>
-                <div class="chart-box">
-                    <img id="ogiveImage" class="chart-image" alt="Ogive generated with Matplotlib">
-                    <div id="ogivePlaceholder" class="placeholder">Median and mean lines are shown in the ogive plot.</div>
-                </div>
-            </div>
         </section>
     </div>
 </main>
@@ -345,10 +309,6 @@
     const errorBox = document.getElementById('errorBox');
     const dataSummary = document.getElementById('dataSummary');
     const statsGrid = document.getElementById('statsGrid');
-    const histogramImage = document.getElementById('histogramImage');
-    const histogramPlaceholder = document.getElementById('histogramPlaceholder');
-    const ogiveImage = document.getElementById('ogiveImage');
-    const ogivePlaceholder = document.getElementById('ogivePlaceholder');
     const ungroupedPanel = document.getElementById('ungroupedPanel');
     const groupedPanel = document.getElementById('groupedPanel');
     const ungroupedBody = document.getElementById('ungroupedBody');
@@ -504,12 +464,6 @@
     function clearResults() {
         dataSummary.textContent = '';
         statsGrid.innerHTML = '';
-        histogramImage.classList.remove('visible');
-        histogramImage.src = '';
-        histogramPlaceholder.style.display = 'block';
-        ogiveImage.classList.remove('visible');
-        ogiveImage.src = '';
-        ogivePlaceholder.style.display = 'block';
     }
 
     function renderStats(data) {
@@ -517,8 +471,7 @@
         const statItems = [
             { label: 'Mean', value: data.mean },
             { label: 'Median', value: data.median },
-            { label: 'Mode', value: data.mode },
-            { label: 'Modal class', value: data.modal_label }
+            { label: 'Mode', value: data.mode }
         ];
         statItems.forEach((item) => {
             const card = document.createElement('div');
@@ -527,19 +480,6 @@
             statsGrid.appendChild(card);
         });
         dataSummary.textContent = `${data.type} | Total frequency ${formatNumber(data.total_frequency)}`;
-    }
-
-    function renderImages(data) {
-        if (data.histogram_image) {
-            histogramImage.src = `data:image/png;base64,${data.histogram_image}`;
-            histogramImage.classList.add('visible');
-            histogramPlaceholder.style.display = 'none';
-        }
-        if (data.ogive_image) {
-            ogiveImage.src = `data:image/png;base64,${data.ogive_image}`;
-            ogiveImage.classList.add('visible');
-            ogivePlaceholder.style.display = 'none';
-        }
     }
 
     function formatNumber(value) {
@@ -582,7 +522,6 @@
                 throw new Error(data.error || 'Unable to calculate statistics.');
             }
             renderStats(data);
-            renderImages(data);
         } catch (error) {
             showError(error.message);
         }

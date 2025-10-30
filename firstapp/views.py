@@ -215,7 +215,9 @@ def _compute_ungrouped_statistics(pairs):
     sorted_items = sorted(frequencies.items())
     max_frequency = max((freq for _, freq in sorted_items), default=0)
     mode_values = [val for val, freq in sorted_items if freq == max_frequency] if max_frequency else []
-    mode_display = ', '.join(str(_format_number(val)) for val in mode_values) if mode_values else '—'
+    if len(sorted_items) > 1 and len(mode_values) == len(sorted_items):
+        mode_values = []
+    mode_display = ', '.join(str(_format_number(val)) for val in mode_values) if mode_values else 'None'
 
     ogive_points = []
     running_total = 0
@@ -230,7 +232,7 @@ def _compute_ungrouped_statistics(pairs):
         'total_frequency': total_frequency,
         'mean': mean_value,
         'median': median_value,
-        'mode_display': mode_display,
+    'mode_display': mode_display,
         'mode_values': mode_values,
         'values': values,
         'ogive_points': ogive_points,
