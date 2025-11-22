@@ -8,6 +8,7 @@ import matplotlib
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.views import View
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 import matplotlib.pyplot as plt
 
@@ -27,16 +28,17 @@ class HelloEthiopia(View):
     
 
 def home(request):
-    form = ReservationForm()            
+    form = ReservationForm()
 
     if request.method == 'POST':
         form = ReservationForm(request.POST)
         if form.is_valid():
             form.save()
             return HttpResponse("success")
-        
+
     return render(request, 'index.html', {'form' : form})
 
+@ensure_csrf_cookie
 def statistics_view(request):
     if request.method == 'POST':
         try:
